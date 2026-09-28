@@ -1,47 +1,55 @@
-# Actividad MySQL - Funciones, Procedimientos y Triggers
+# Base de datos MySQL - Universidad
 
-Actividad realizada a partir del PDF **Funciones, Procedimientos y Triggers**.
+Repositorio de la actividad de base de datos trabajada sobre el modelo **universidad**.
 
-## Archivo principal
+## Archivos
 
-- `Funciones_Procedimientos_Triggers.sql`
+### 1. `01_tabla_calificacion.sql`
+Agrega la tabla `calificacion` que no aparece en el `universidad.sql` original. La tabla queda relacionada directamente con:
 
-## Contenido
+- `persona`
+- `asignatura`
+- `curso_escolar`
+- `alumno_se_matricula_asignatura`
 
-### Funciones
-1. `fnc_calcular_nota_final`
-2. `fnc_obtener_estado_academico`
-3. `fnc_total_creditos_matriculados`
-4. `fnc_promedio_general_asignatura`
-5. `fnc_contar_asignaturas_aprobadas`
+El modelo original define las tablas de personas, profesores, asignaturas, cursos y matrículas con sus llaves primarias y foráneas. 
 
-La nota final aplica:
+### 2. `Funciones_Procedimientos_Triggers.sql`
+Contiene la actividad completa:
+
+**5 funciones**
+1. Calcular nota final.
+2. Obtener estado académico.
+3. Calcular créditos matriculados.
+4. Calcular promedio de una asignatura.
+5. Contar asignaturas aprobadas.
+
+**5 procedimientos**
+1. Guardar o actualizar calificación.
+2. Generar acta de un curso.
+3. Matricular alumno.
+4. Reasignar docente.
+5. Generar reporte histórico del estudiante.
+
+**5 triggers**
+1. Normalizar trabajo práctico.
+2. Validar notas.
+3. Registrar cambios en historial.
+4. Evitar matrículas duplicadas.
+5. Colocar fecha automática.
+
+## Orden para ejecutar en MySQL Workbench
+
+1. Ejecuta primero tu archivo original `universidad.sql`.
+2. Ejecuta `01_tabla_calificacion.sql`.
+3. Ejecuta `Funciones_Procedimientos_Triggers.sql`.
+4. Revisa los SELECT y CALL de prueba al final del archivo.
+
+## Nota final
+
+La función de nota usa la ponderación indicada para la actividad:
+
 - Sin trabajo práctico: 20% + 35% + 45%.
 - Con trabajo práctico: 20% + 35% + 35% + 10%.
 
-### Procedimientos
-1. `sp_guardar_calificacion`
-2. `sp_generar_acta_curso`
-3. `sp_matricular_alumno`
-4. `sp_reasignar_docente`
-5. `sp_reporte_historico_estudiante`
-
-### Triggers
-Se cubren las cinco reglas solicitadas por la actividad:
-1. Normalización del trabajo práctico.
-2. Auditoría de modificación de notas.
-3. Validación de notas entre 0.00 y 5.00.
-4. Prevención de matrículas duplicadas.
-5. Fecha automática de registro.
-
-Las reglas 1, 3 y 5 se agrupan en el trigger de inserción y la validación también se aplica en actualización para mantener compatibilidad con instalaciones de MySQL donde no conviene crear varios triggers con el mismo evento/tiempo.
-
-## Importante
-
-El script trabaja sobre la base de datos `universidad` y sobre el modelo que utiliza las tablas `calificacion`, `persona`, `profesor`, `asignatura`, `curso_escolar` y `alumno_se_matricula_asignatura`.
-
-Antes de ejecutar el script, verifica que la base de datos y esas tablas ya estén creadas.
-
-El `ALTER TABLE calificacion ADD COLUMN fecha_registro` se ejecuta una sola vez. Si la columna ya existe, omite esa línea.
-
-Las pruebas de cada función y procedimiento están al final del archivo SQL.
+El script fue adaptado a los nombres de tablas y columnas del archivo `universidad.sql` proporcionado.
