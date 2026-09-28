@@ -200,7 +200,8 @@ END$$
 CREATE PROCEDURE sp_reasignar_docente(
     IN p_id_asignatura INT,
     IN p_id_profesor INT,
-    IN p_id_departamento INT
+    IN p_id_departamento INT,
+    IN p_id_curso_escolar INT
 )
 BEGIN
     IF NOT EXISTS (
@@ -218,6 +219,13 @@ BEGIN
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'La asignatura no existe.';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM curso_escolar WHERE id = p_id_curso_escolar
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El curso escolar no existe.';
     END IF;
 
     UPDATE asignatura
@@ -259,29 +267,42 @@ DELIMITER ;
 -- 3. TRIGGERS
 -- ============================================================
 
-DROP TRIGGER IF EXISTS trg_calificacion_normalizar_tp;
-DROP TRIGGER IF EXISTS trg_calificacion_validar_notas;
+DROP TRIGGER IF EXISTS trg_calificacion_validar_insert;
+DROP TRIGGER IF EXISTS trg_calificacion_validar_update;
 DROP TRIGGER IF EXISTS trg_calificacion_auditoria;
 DROP TRIGGER IF EXISTS trg_matricula_evitar_duplicado;
 DROP TRIGGER IF EXISTS trg_calificacion_fecha;
 
 DELIMITER $$
 
--- Trigger 1: si el trabajo practico llega como 0, se guarda como NULL.
-CREATE TRIGGER trg_calificacion_normalizar_tp
+-- Trigger 1: normaliza el trabajo practico y valida rangos al insertar.
+CREATE TRIGGER trg_calificacion_validar_insert
 BEFORE INSERT ON calificacion
 FOR EACH ROW
 BEGIN
     IF NEW.trabajo_practico = 0 THEN
         SET NEW.trabajo_practico = NULL;
     END IF;
+
+    IF NEW.parcial_1 NOT BETWEEN 0 AND 5
+       OR NEW.parcial_2 NOT BETWEEN 0 AND 5
+       OR NEW.parcial_final NOT BETWEEN 0 AND 5
+       OR (NEW.trabajo_practico IS NOT NULL
+           AND NEW.trabajo_practico NOT BETWEEN 0 AND 5) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Las notas deben estar entre 0.00 y 5.00.';
+    END IF;
 END$$
 
--- Trigger 2: valida el rango de todas las notas.
-CREATE TRIGGER trg_calificacion_validar_notas
+-- Trigger 2: normaliza el trabajo practico y valida rangos al actualizar.
+CREATE TRIGGER trg_calificacion_validar_update
 BEFORE UPDATE ON calificacion
 FOR EACH ROW
 BEGIN
+    IF NEW.trabajo_practico = 0 THEN
+        SET NEW.trabajo_practico = NULL;
+    END IF;
+
     IF NEW.parcial_1 NOT BETWEEN 0 AND 5
        OR NEW.parcial_2 NOT BETWEEN 0 AND 5
        OR NEW.parcial_final NOT BETWEEN 0 AND 5
@@ -366,5 +387,7 @@ SELECT fnc_contar_asignaturas_aprobadas(1) AS aprobadas_alumno_1;
 CALL sp_generar_acta_curso(1, 1);
 
 CALL sp_reporte_historico_estudiante(1);
+
+CALL sp_reasignar_docente(1, 14, 1, 1);
 
 SELECT * FROM historial_calificaciones;
